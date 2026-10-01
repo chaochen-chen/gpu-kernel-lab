@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Build artifacts
+build/
+*.o
+*.so
+*.ptx
+*.cubin
+
+# Profiler output
+*.nsys-rep
+*.ncu-rep
+*.qdrep
+
+# Benchmark results: keep CSVs, ignore plots
+results/*.png
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
