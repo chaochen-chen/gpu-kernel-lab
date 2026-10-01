@@ -16,3 +16,4 @@ Profiler outputs (`*.nsys-rep`, `*.ncu-rep`) are gitignored.
 - Memory-bound or compute-bound? Compare achieved GB/s / TFLOPS to hardware peak.
 - Occupancy, register and shared-memory usage per kernel.
 - Coalescing and bank conflicts.
+- roofline model
