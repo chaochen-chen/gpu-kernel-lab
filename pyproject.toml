@@ -1,7 +1,7 @@
 [project]
-name = "gpu-notes"
+name = "gpu-kernel-lab"
 version = "0.1.0"
-description = "Learning notes, kernels, tests and benchmarks for GPU programming"
+description = "Notes, kernels, tests and benchmarks for GPU programming"
 requires-python = ">=3.10"
 dependencies = ["torch", "triton"]
 
