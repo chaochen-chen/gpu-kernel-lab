@@ -86,11 +86,10 @@ Selected by `casting_mode`.
 - The backward kernel must replicate the same casting, otherwise gradients drift from the reference.
 
 
-## Questions / to verify
-- [ ] Exact threshold between the row and block forward kernels
-- [ ] Is `in_place` the default, and which models disable it?
-- [ ] How `rows_per_program` is computed
-- [ ] Where `dW` is cast back to the weight dtype
+## Follow-up questions
+- [ ] one-row-program vs block-row-program: selection of threshold
+- [ ] `rstd`: why need a specific function `rsqrt`?
+- [ ] `rsqrt`: different triton's version
 
 ## Takeaways
 - Save the small statistic (`rstd`), recompute the big tensor (`x̂`).
