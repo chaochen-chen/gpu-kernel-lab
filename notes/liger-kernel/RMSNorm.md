@@ -1,4 +1,9 @@
-# RMSNorm
+## TODOs
+- [ ] test_correctness's and assert_verbose_allclose's implementation
+- [ ] Functional API (test_correctness_functional)
+- [ ] Int32 overflow in the blocked kernel
+
+# Kernel Implementation
 ## Math
 
 **Notation:** `x ∈ ℝⁿ` is one row (`n = n_cols`), `w` is the weight, `o` is the offset (0 for Llama, 1 for Gemma), and `ε = eps`.
@@ -95,4 +100,24 @@ Selected by `casting_mode`.
 - Save the small statistic (`rstd`), recompute the big tensor (`x̂`).
 - Use per-program partial buffers plus a host-side sum instead of atomics for cross-row reductions.
 - Match the reference's casting order exactly, because it decides numerical parity.
+
+# Test
+## Test correctness
+It runs the same random input through a reference PyTorch RMSNorm and LigerRMSNorm, then backpropagates a random upstream gradient through both. It checks three things match within tolerance:
+- the forward output
+- the weight gradient (only when elementwise_affine=True)
+- the input gradient <br>
+
+The parametrization covers the variants that matter:
+- **Shapes**: 1) a normal one (2×128×512) 2) an odd one (5×123×123) (test masking condition)
+- **Dtypes**: 1) fp32 (tight tolerance, 1e-4) and 2) bf16 (loose tolerance, 2e-1, skipped if the GPU lacks bf16 support).
+- **Reference**: 1) Llama (offset=0, upcasts to fp32 before the norm, then casts back), 2) Gemma (offset=1, computes x * (1 + w) in fp32), 3) and a "Base" version with no upcasting (casting_mode="none", skipped on Ascend NPU).
+
+
+## Follow-up questions
+- [ ] What is `test_block_rms_norm_int32_row_offset_wraps` for?
+- [ ] What is `test_block_rms_norm_large_row_offset` for?
+- [ ] Clarify how floating point store numbers. (fp32, bf16, etc.)
+- [ ] Clarify how pytorch's `.backward()` do
+
   
