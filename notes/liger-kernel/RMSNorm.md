@@ -95,6 +95,7 @@ Selected by `casting_mode`.
 - [ ] one-row-program vs block-row-program: selection of threshold
 - [ ] `rstd`: why need a specific function `rsqrt`?
 - [ ] `rsqrt`: different triton's version
+- [ ] Clarify how pytorch's `.backward()` do
 
 ## Takeaways
 - Save the small statistic (`rstd`), recompute the big tensor (`x̂`).
@@ -103,7 +104,7 @@ Selected by `casting_mode`.
 
 # Test
 ## Test correctness
-It runs the same random input through a reference PyTorch RMSNorm and LigerRMSNorm, then backpropagates a random upstream gradient through both. It checks three things match within tolerance:
+Run the same random input through a reference RMSNorm (Pytorch native, Llama, etc.) and LigerRMSNorm, then backpropagates a random upstream gradient through both. It checks three things match within tolerance:
 - the forward output
 - the weight gradient (only when elementwise_affine=True)
 - the input gradient <br>
@@ -117,7 +118,5 @@ The parametrization covers the variants that matter:
 ## Follow-up questions
 - [ ] What is `test_block_rms_norm_int32_row_offset_wraps` for?
 - [ ] What is `test_block_rms_norm_large_row_offset` for?
-- [ ] Clarify how floating point store numbers. (fp32, bf16, etc.)
-- [ ] Clarify how pytorch's `.backward()` do
 
   
