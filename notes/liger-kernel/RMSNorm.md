@@ -1,4 +1,12 @@
-# RMSNorm
+## TODOs
+### Kernel Implementation
+- [ ] backward operator
+### Test
+- [ ] test_correctness's and assert_verbose_allclose's implementation
+- [ ] Functional API (test_correctness_functional)
+- [ ] Int32 overflow in the blocked kernel
+
+# Kernel Implementation
 ## Math
 
 **Notation:** `x ∈ ℝⁿ` is one row (`n = n_cols`), `w` is the weight, `o` is the offset (0 for Llama, 1 for Gemma), and `ε = eps`.
@@ -14,25 +22,8 @@ y_i  = x̂_i · (o + w_i)
 ### Backward
 
 ```
-u_i  = dy_i · (o + w_i)
-
-dx_i = rstd · u_i  −  (rstd³ / n) · x_i · Σ_j u_j x_j
-     = rstd · ( u_i  −  x̂_i · (1/n) · Σ_j u_j x̂_j )
-
-dw_i = Σ_rows dy_i · x̂_i
+[TO BE FILLED]
 ```
-
-### Derivation
-
-```
-∂rstd/∂x_i = −rstd³ · x_i / n
-```
-
-`dx` collects two paths: the direct `x_i` term and the path through `rstd`.
-
-### Saved for backward
-
-`X`, `W`, and `rstd` (one fp32 scalar per row). `Y` is not saved, so memory is traded for recomputing `x̂`.
 
 ## Shapes & dtypes
 
@@ -42,17 +33,19 @@ dw_i = Σ_rows dy_i · x̂_i
 | `W` | `[n_cols]` | same as `X` | skipped if `elementwise_affine=False` |
 | `Y` | `[n_rows, n_cols]` | same as `X` | output |
 | `rstd` | `[n_rows]` | fp32 | saved for backward |
-| `dW` (partial) | `[sm_count, n_cols]` | fp32 | summed on host over dim 0 |
+| `dW` (partial) | `[TO BE FILLED]` | [TO BE FILLED] | summed on host over dim 0 |
 
 ## Strategy
 
 - **Forward**:
   - Wide rows: one row per program (`_rms_norm_forward_kernel`).
   - Narrow rows, many rows: several rows per program (`_block_rms_norm_forward_kernel`).
-- **Backward**: `dx` is row-local, but `dw` needs a cross-row reduction.
+- **Backward**: [TO BE FILLED]
+- **BLOCK_SIZE**: [TO BE FILLED]
+- Backward-temp: `dx` is row-local, but `dw` needs a cross-row reduction.
   - Grid of about `sm_count` programs; each loops over its rows and accumulates a private `dW` partial.
   - The host sums the `[sm_count, n_cols]` buffer. No atomics.
-- **BLOCK_SIZE**: `next_power_of_2(n_cols)`, capped by the max fused size.
+- BLOCK_SIZE-temp: `next_power_of_2(n_cols)`, capped by the max fused size.
 
 ## Kernels & inputs
 
@@ -62,10 +55,9 @@ dw_i = Σ_rows dy_i · x̂_i
 - `tl.constexpr`: `casting_mode, elementwise_affine, BLOCK_SIZE`
 
 ### `_rms_norm_backward_kernel`
-- Pointers / strides: `dY_ptr, dX_ptr, X_ptr, W_ptr, RSTD_ptr, dW_ptr` + matching strides
-- Scalars: `n_rows, n_cols, offset, rows_per_program`
-- `tl.constexpr`: `casting_mode, elementwise_affine, BLOCK_SIZE`
-- ⚠️ Some versions write `dX` in place over `dY` (`in_place`).
+- Pointers / strides: [TO BE FILLED]
+- Scalars: [TO BE FILLED]
+- `tl.constexpr`: [TO BE FILLED]
 
 ## dtype in models
 
@@ -86,14 +78,31 @@ Selected by `casting_mode`.
 - The backward kernel must replicate the same casting, otherwise gradients drift from the reference.
 
 
-## Questions / to verify
-- [ ] Exact threshold between the row and block forward kernels
-- [ ] Is `in_place` the default, and which models disable it?
-- [ ] How `rows_per_program` is computed
-- [ ] Where `dW` is cast back to the weight dtype
+## Follow-up questions
+- [ ] one-row-program vs block-row-program: selection of threshold
+- [ ] `rstd`: why need a specific function `rsqrt`?
+- [ ] `rsqrt`: different triton's version
 
 ## Takeaways
 - Save the small statistic (`rstd`), recompute the big tensor (`x̂`).
 - Use per-program partial buffers plus a host-side sum instead of atomics for cross-row reductions.
 - Match the reference's casting order exactly, because it decides numerical parity.
+
+# Test
+## Test correctness
+Run the same random input through a reference RMSNorm (Pytorch native, Llama, etc.) and LigerRMSNorm, then backpropagates a random upstream gradient through both. It checks three things match within tolerance:
+- the forward output
+- the weight gradient (only when elementwise_affine=True)
+- the input gradient <br>
+
+The parametrization covers the variants that matter:
+- **Shapes**: 1) a normal one (2×128×512) 2) an odd one (5×123×123) (test masking condition)
+- **Dtypes**: 1) fp32 (tight tolerance, 1e-4) and 2) bf16 (loose tolerance, 2e-1, skipped if the GPU lacks bf16 support).
+- **Reference**: 1) Llama (offset=0, upcasts to fp32 before the norm, then casts back), 2) Gemma (offset=1, computes x * (1 + w) in fp32), 3) and a "Base" version with no upcasting (casting_mode="none", skipped on Ascend NPU).
+
+
+## Follow-up questions
+- [ ] What is `test_block_rms_norm_int32_row_offset_wraps` for?
+- [ ] What is `test_block_rms_norm_large_row_offset` for?
+
   
