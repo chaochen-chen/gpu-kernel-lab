@@ -1,8 +1,4 @@
-# Liger-Kernel Benchmark System Design
-
-I'll look at the repo's current benchmark code rather than relying on memory.
-
-Here is a summary of how Liger-Kernel's benchmark system is designed. It is based on the repo's contributing docs and an auto-generated DeepWiki analysis of a recent commit, not on a line-by-line read of the source, so check details against `benchmark/` directly.
+# Liger-Kernel Benchmark Design Pattern
 
 ## Core idea
 
