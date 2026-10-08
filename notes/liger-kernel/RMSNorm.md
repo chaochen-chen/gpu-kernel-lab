@@ -1,4 +1,7 @@
 ## TODOs
+### Kernel Implementation
+- [ ] backward operator
+### Test
 - [ ] test_correctness's and assert_verbose_allclose's implementation
 - [ ] Functional API (test_correctness_functional)
 - [ ] Int32 overflow in the blocked kernel
@@ -79,7 +82,6 @@ Selected by `casting_mode`.
 - [ ] one-row-program vs block-row-program: selection of threshold
 - [ ] `rstd`: why need a specific function `rsqrt`?
 - [ ] `rsqrt`: different triton's version
-- [ ] Clarify how pytorch's `.backward()` do
 
 ## Takeaways
 - Save the small statistic (`rstd`), recompute the big tensor (`x̂`).
