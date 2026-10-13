@@ -1,3 +1,5 @@
+## TODOs
+- [ ] Visualize the design pattern
 # Liger-Kernel Benchmark Design Pattern
 
 ## Core idea
